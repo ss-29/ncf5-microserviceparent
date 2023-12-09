@@ -19,9 +19,8 @@ public class InventoryService {
     public List<InventoryResponse> isInStock(List<String> skuCodeList) {
         log.info("wait started ⏳️");
         try {
-            Thread.sleep(10000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         log.info("wait ended ⌛️");

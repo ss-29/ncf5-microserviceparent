@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import brave.Span;
+import brave.Tracer;
 import dev.newbcoder_f5.ncf5orderservice.dto.InventoryResponse;
 import dev.newbcoder_f5.ncf5orderservice.dto.OrderLineItemsDto;
 import dev.newbcoder_f5.ncf5orderservice.dto.OrderRequest;
@@ -23,9 +25,12 @@ public class OrderService {
 
     @Autowired
     private WebClient.Builder webClientBuilder;
-    
+
+    @Autowired
+    private Tracer tracer;
+
     public String placeOrder(OrderRequest orderRequest) {
-        
+
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
 
@@ -36,33 +41,39 @@ public class OrderService {
 
         order.setOrderLineItemsList(orderLineItems);
 
-        //# get list of skuCodes
-        // order.getOrderLineItemsList().stream().map(orderLineItem -> orderLineItem.getSkuCode());
+        // # get list of skuCodes
+        // order.getOrderLineItemsList().stream().map(orderLineItem ->
+        // orderLineItem.getSkuCode());
 
-        //# above line with method reference
+        // # above line with method reference
         List<String> skuCodes = order.getOrderLineItemsList()
-                        .stream()
-                        .map(OrderLineItems::getSkuCode)
-                        .toList();
+                .stream()
+                .map(OrderLineItems::getSkuCode)
+                .toList();
 
-        //@ call inventory service and place order if product is in stock
-        InventoryResponse[] inventoryResponseResult = webClientBuilder.build().get()
-            .uri("http://ncf5-inventoryservice/api/inventory",
-                    uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
-            .retrieve()
-            .bodyToMono(InventoryResponse[].class)
-            .block();
+        Span inventoryServiceLookup = tracer.nextSpan().name("ncf5-inventoryservice lookup");
+        try (Tracer.SpanInScope spanInScope = tracer.withSpanInScope(inventoryServiceLookup.start())) {
+            // @ call inventory service and place order if product is in stock
+            InventoryResponse[] inventoryResponseResult = webClientBuilder.build().get()
+                    .uri("http://ncf5-inventoryservice/api/inventory",
+                            uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
+                    .retrieve()
+                    .bodyToMono(InventoryResponse[].class)
+                    .block();
 
-        //# even if one product is not available (in inventory), result will be false
-        boolean allProductsInStock = Arrays.stream(inventoryResponseResult)
-                        .allMatch(InventoryResponse::isInStock);
+            // # even if one product is not available (in inventory), result will be false
+            boolean allProductsInStock = Arrays.stream(inventoryResponseResult)
+                    .allMatch(InventoryResponse::isInStock);
 
-        if (allProductsInStock)
-            orderRepository.save(order);
-        else
-            return "🛑 Product is not in stock 🛒, please try again later.";
-        
-        return "✅ Order placed successfully 🛒";
+            if (allProductsInStock)
+                orderRepository.save(order);
+            else
+                return "🛑 Product is not in stock 🛒, please try again later.";
+
+            return "✅ Order placed successfully 🛒";
+        } finally {
+            inventoryServiceLookup.finish();
+        }
 
     }
 
