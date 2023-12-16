@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -13,6 +14,7 @@ import brave.Tracer;
 import dev.newbcoder_f5.ncf5orderservice.dto.InventoryResponse;
 import dev.newbcoder_f5.ncf5orderservice.dto.OrderLineItemsDto;
 import dev.newbcoder_f5.ncf5orderservice.dto.OrderRequest;
+import dev.newbcoder_f5.ncf5orderservice.event.OrderPlacedEvent;
 import dev.newbcoder_f5.ncf5orderservice.model.Order;
 import dev.newbcoder_f5.ncf5orderservice.model.OrderLineItems;
 import dev.newbcoder_f5.ncf5orderservice.repository.OrderRepository;
@@ -28,6 +30,9 @@ public class OrderService {
 
     @Autowired
     private Tracer tracer;
+
+    @Autowired
+    private KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
 
     public String placeOrder(OrderRequest orderRequest) {
 
@@ -65,8 +70,10 @@ public class OrderService {
             boolean allProductsInStock = Arrays.stream(inventoryResponseResult)
                     .allMatch(InventoryResponse::isInStock);
 
-            if (allProductsInStock)
+            if (allProductsInStock) {
                 orderRepository.save(order);
+                kafkaTemplate.send("notification", new OrderPlacedEvent(order.getOrderNumber()));
+            }
             else
                 return "🛑 Product is not in stock 🛒, please try again later.";
 

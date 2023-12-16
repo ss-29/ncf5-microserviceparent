@@ -22,6 +22,7 @@
         <module>ncf5-inventoryservice</module>
         <module>ncf5-discoveryserver</module>
 		<module>ncf5-apigateway</module>
+		<module>ncf5-notificationservice</module>
     </modules>
 
     <properties>

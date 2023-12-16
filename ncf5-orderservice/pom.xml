@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>dev.newbcoder_f5</groupId>
-        <artifactId>ncf5-microserviceparent</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
+	<parent>
+		<groupId>dev.newbcoder_f5</groupId>
+		<artifactId>ncf5-microserviceparent</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
 
-    <artifactId>ncf5-orderservice</artifactId>
+	<artifactId>ncf5-orderservice</artifactId>
 
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-    </properties>
+	<properties>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+	</properties>
 
-    <dependencies>
+	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -29,7 +29,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
-		  </dependency>
+		</dependency>
 
 		<dependency>
 			<groupId>com.mysql</groupId>
@@ -66,6 +66,15 @@
 		<dependency>
 			<groupId>io.zipkin.reporter2</groupId>
 			<artifactId>zipkin-reporter-brave</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
